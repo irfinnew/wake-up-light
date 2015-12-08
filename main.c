@@ -115,14 +115,13 @@ void cycle(unsigned int level)
 
 
 
-	// Because of the way this zero-cross detection works, the
-	// lower semicycle appears longer by about 0.94%.
-	// We compensate for this by delaying for a bit 0.94% (of 10ms)
-	// before the main loop of the lower semicycle.
+	// Because of the way this zero-cross detection works, the upper
+	// semicycle appears longer by about 1%.  We compensate for this by
+	// delaying for a bit before the main loop of the lower semicycle.
 	// This ensures <count> is roughly the same for both semis.
-	// 110us empirically found to be most stable.
-	if (which)
-		_delay_us(110);
+	// 63us empirically found to be most stable.
+	if (!which)
+		_delay_us(63);
 
 
 
@@ -141,9 +140,9 @@ void cycle(unsigned int level)
 
 		if (count == target)
 		{
-			PORTB |= _BV(PIN_TRIAC);
-			_delay_us(US_PULSE);
 			PORTB &= ~_BV(PIN_TRIAC);
+			_delay_us(US_PULSE);
+			PORTB |= _BV(PIN_TRIAC);
 			// Count compensation because of pulse delay.
 			// One count should be 13 cycles.
 			// One pulse is 100us, or 200 cycles at 2 MHz.
@@ -193,6 +192,7 @@ int main (void)
 	CLKPR = 0x02;
 
 	// Set outputs
+	PORTB |= _BV(PIN_TRIAC); // High = inactive
 	DDRB = _BV(PIN_TRIAC) | _BV(PIN_LED);
 
 	// Synchronize to the AC sine wave.
