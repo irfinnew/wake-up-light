@@ -10,6 +10,7 @@
 
 #define PIN_ZEROCROSS PB3
 #define PIN_LED       PB1
+#define PIN_BUTTON    PB2
 #define PIN_TRIAC     PB4
 
 
@@ -66,6 +67,22 @@ void blink(unsigned char on, unsigned char off)
 		count = 0;
 		return;
 	}
+}
+
+
+
+// Returns true iff the button is pressed and was depressed the previous 7
+// invocations of this function. If polled every semicycle, this provides
+// good debouncing.
+unsigned char button_pressed(void)
+{
+	static unsigned char acc = 0;
+
+	acc <<= 1;
+	if (PINB & _BV(PIN_BUTTON))
+		acc |= 1;
+
+	return acc == 0x01;
 }
 
 
@@ -200,52 +217,65 @@ int main (void)
 	cycle(0);
 
 
-	// Ramp up
-	for (level = 0; level <= 47500 << 15; level += LVL_RAMP(2))
-	{
-		cycle(LVL_SCALE(level));
-		blink(3, 3);
-	}
-
-
-	for(;;)
-	{
-		cycle(47500);
-		cycle(47501);
-		blink(4, 4);
-	}
-
-
-	for(;;)
-	{
 
 	// Ramp up
-	for (level = 0; level <= LVL_MAX; level += LVL_RAMP(60))
+	for (level = 0; level <= LVL_MAX; level += LVL_RAMP(1800))
 	{
 		cycle(LVL_SCALE(level));
 		blink(5, 15);
+		if (button_pressed())
+			goto off;
 	}
 
 	// Steady
-	for (level = 0; level <= LVL_MAX; level += LVL_RAMP(5))
+	for (level = 0; level <= LVL_MAX; level += LVL_RAMP(2700))
 	{
 		cycle(0xffffU);
 		blink(1, 0);
+		if (button_pressed())
+		{
+			level = LVL_MAX;
+			goto off;
+		}
 	}
 
 	// Ramp down
-	for (level = LVL_MAX; level <= LVL_MAX; level -= LVL_RAMP(1))
+	for (level = LVL_MAX; level <= LVL_MAX; level -= LVL_RAMP(2))
 	{
 		cycle(LVL_SCALE(level));
 		blink(15, 5);
 	}
 
+off:
 	// Off
-	for (level = 0; level <= LVL_MAX; level += LVL_RAMP(5))
+	for (; level <= LVL_MAX; level -= LVL_RAMP(0.5))
+	{
+		cycle(LVL_SCALE(level));
+		blink(5, 5);
+	}
+	level = 0;
+	for (;;)
 	{
 		cycle(0);
 		blink(5, 95);
+		if (button_pressed())
+			goto on;
 	}
 
+on:
+	// On (only reachable by button)
+	for (; level <= LVL_MAX; level += LVL_RAMP(1))
+	{
+		cycle(LVL_SCALE(level));
+		blink(5, 5);
 	}
+	level = LVL_MAX;
+	for (;;)
+	{
+		cycle(0xffffU);
+		blink(95, 5);
+		if (button_pressed())
+			goto off;
+	}
+
 }
