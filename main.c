@@ -252,6 +252,8 @@ off:
 	{
 		cycle(LVL_SCALE(level));
 		blink(5, 5);
+		if (button_pressed())
+			goto on;
 	}
 	level = 0;
 	for (;;)
@@ -268,6 +270,8 @@ on:
 	{
 		cycle(LVL_SCALE(level));
 		blink(5, 5);
+		if (button_pressed())
+			goto off;
 	}
 	level = LVL_MAX;
 	for (;;)
