@@ -5,8 +5,8 @@
 
 #define US_PULSE 100
 #define LVL_MAX 0x7fffffff
-#define LVL_SCALE(x) ((x >> 16) << 1)
-#define LVL_RAMP(x) (LVL_MAX / 100 / x)
+#define LVL_SCALE(x) (((x) >> 16) << 1)
+#define LVL_RAMP(x) (LVL_MAX / 100 / (x))
 
 #define PIN_ZEROCROSS PB3
 #define PIN_LED       PB1
@@ -110,17 +110,17 @@ void cycle(unsigned int level)
 	// Implement a level scaling that starts out linear but
 	// tends to hypercubed eventually. This is a lot closer to
 	// perceived linear brightness due to the way incandescents
-	// and AC sine waves interact. (abuses target as temp var)
+	// and AC sine waves interact. (abuses <target> as temp var)
 	target = mul16_h16(level, level);
 	target = mul16_h16(target, target);
 	target = (target >> 1) + (level >> 1);
 
 	// Invert level; a low level translates to a high target
 	target = 0xffffU - target;
-	// We pretend the cycle is 128 counts shorter than it really is, to
-	// prevent overshoot. About 0x40 seems really needed to prevent
-	// incorrect triac triggering. The larger value makes level=0 close to
-	// the glow point of the halogens I use.
+	// We pretend the cycle is shorter than it really is, to prevent
+	// overshoot. About 0x40 seems really needed to prevent incorrect triac
+	// triggering. The larger value makes level=0 close to the glow point
+	// of the halogens I use.
 	target = mul16_h16(cycle_len - 0x90, target);
 
 	// At lowest level, set an unreachable target to ensure the triac
@@ -178,7 +178,7 @@ void cycle(unsigned int level)
 		cycle_len = count;
 
 	// Adjust cycle_len, if needed. Adjusting by one step max prevents
-	// intererence from messing things up too badly.
+	// noise on the zero-cross detector from messing things up too badly.
 	if (count > cycle_len)
 		cycle_len++;
 	if (count < cycle_len)
