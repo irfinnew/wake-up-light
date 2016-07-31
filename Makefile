@@ -13,7 +13,7 @@ upload: check-tty main.hex
 	avrdude -qq -p t45 -c stk500v1 -e -P $(SERIAL) -b 19200 -U flash:w:main.hex
 
 clean:
-	rm -f *.hex *.elf
+	rm -f *.elf
 
 check-tty:
 ifndef SERIAL
