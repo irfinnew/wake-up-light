@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name WakeUpLight)(type KiCad)(uri "$(KIPRJMOD)/WakeUpLight.pretty")(options "")(descr ""))
+)

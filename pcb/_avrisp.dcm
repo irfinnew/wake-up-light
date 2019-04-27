@@ -1,0 +1,8 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP AVRISP
+D Standard 6-pin AVR ISP header
+K connector
+$ENDCMP
+#
+#End Doc Library
