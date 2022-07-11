@@ -1,3 +1,5 @@
+![Wake-Up Light cover image](https://moreaux.nl/projects/wake-up-light/github.png)
+
 # About
 
 This is a dawn simulation lamp I made for my personal use.
